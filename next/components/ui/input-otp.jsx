@@ -12,11 +12,11 @@ function InputOTP({
   ...props
 }) {
   return (
-    <OTPInput
+    (<OTPInput
       data-slot="input-otp"
       containerClassName={cn("flex items-center gap-2 has-disabled:opacity-50", containerClassName)}
       className={cn("disabled:cursor-not-allowed", className)}
-      {...props} />
+      {...props} />)
   );
 }
 
@@ -25,10 +25,10 @@ function InputOTPGroup({
   ...props
 }) {
   return (
-    <div
+    (<div
       data-slot="input-otp-group"
       className={cn("flex items-center", className)}
-      {...props} />
+      {...props} />)
   );
 }
 
@@ -41,7 +41,7 @@ function InputOTPSlot({
   const { char, hasFakeCaret, isActive } = inputOTPContext?.slots[index] ?? {}
 
   return (
-    <div
+    (<div
       data-slot="input-otp-slot"
       data-active={isActive}
       className={cn(
@@ -56,7 +56,7 @@ function InputOTPSlot({
           <div className="animate-caret-blink bg-foreground h-4 w-px duration-1000" />
         </div>
       )}
-    </div>
+    </div>)
   );
 }
 
@@ -64,9 +64,9 @@ function InputOTPSeparator({
   ...props
 }) {
   return (
-    <div data-slot="input-otp-separator" role="separator" {...props}>
+    (<div data-slot="input-otp-separator" role="separator" {...props}>
       <MinusIcon />
-    </div>
+    </div>)
   );
 }
 

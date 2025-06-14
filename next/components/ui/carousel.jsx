@@ -75,7 +75,7 @@ function Carousel({
   }, [api, onSelect])
 
   return (
-    <CarouselContext.Provider
+    (<CarouselContext.Provider
       value={{
         carouselRef,
         api: api,
@@ -96,7 +96,7 @@ function Carousel({
         {...props}>
         {children}
       </div>
-    </CarouselContext.Provider>
+    </CarouselContext.Provider>)
   );
 }
 
@@ -107,7 +107,7 @@ function CarouselContent({
   const { carouselRef, orientation } = useCarousel()
 
   return (
-    <div
+    (<div
       ref={carouselRef}
       className="overflow-hidden"
       data-slot="carousel-content">
@@ -118,7 +118,7 @@ function CarouselContent({
           className
         )}
         {...props} />
-    </div>
+    </div>)
   );
 }
 
@@ -129,7 +129,7 @@ function CarouselItem({
   const { orientation } = useCarousel()
 
   return (
-    <div
+    (<div
       role="group"
       aria-roledescription="slide"
       data-slot="carousel-item"
@@ -138,7 +138,7 @@ function CarouselItem({
         orientation === "horizontal" ? "pl-4" : "pt-4",
         className
       )}
-      {...props} />
+      {...props} />)
   );
 }
 
@@ -151,7 +151,7 @@ function CarouselPrevious({
   const { orientation, scrollPrev, canScrollPrev } = useCarousel()
 
   return (
-    <Button
+    (<Button
       data-slot="carousel-previous"
       variant={variant}
       size={size}
@@ -163,7 +163,7 @@ function CarouselPrevious({
       {...props}>
       <ArrowLeft />
       <span className="sr-only">Previous slide</span>
-    </Button>
+    </Button>)
   );
 }
 
@@ -176,7 +176,7 @@ function CarouselNext({
   const { orientation, scrollNext, canScrollNext } = useCarousel()
 
   return (
-    <Button
+    (<Button
       data-slot="carousel-next"
       variant={variant}
       size={size}
@@ -188,7 +188,7 @@ function CarouselNext({
       {...props}>
       <ArrowRight />
       <span className="sr-only">Next slide</span>
-    </Button>
+    </Button>)
   );
 }
 

@@ -34,13 +34,13 @@ function DrawerOverlay({
   ...props
 }) {
   return (
-    <DrawerPrimitive.Overlay
+    (<DrawerPrimitive.Overlay
       data-slot="drawer-overlay"
       className={cn(
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
         className
       )}
-      {...props} />
+      {...props} />)
   );
 }
 
@@ -50,7 +50,7 @@ function DrawerContent({
   ...props
 }) {
   return (
-    <DrawerPortal data-slot="drawer-portal">
+    (<DrawerPortal data-slot="drawer-portal">
       <DrawerOverlay />
       <DrawerPrimitive.Content
         data-slot="drawer-content"
@@ -67,7 +67,7 @@ function DrawerContent({
           className="bg-muted mx-auto mt-4 hidden h-2 w-[100px] shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />
         {children}
       </DrawerPrimitive.Content>
-    </DrawerPortal>
+    </DrawerPortal>)
   );
 }
 
@@ -76,10 +76,10 @@ function DrawerHeader({
   ...props
 }) {
   return (
-    <div
+    (<div
       data-slot="drawer-header"
       className={cn("flex flex-col gap-1.5 p-4", className)}
-      {...props} />
+      {...props} />)
   );
 }
 
@@ -88,10 +88,10 @@ function DrawerFooter({
   ...props
 }) {
   return (
-    <div
+    (<div
       data-slot="drawer-footer"
       className={cn("mt-auto flex flex-col gap-2 p-4", className)}
-      {...props} />
+      {...props} />)
   );
 }
 
@@ -100,10 +100,10 @@ function DrawerTitle({
   ...props
 }) {
   return (
-    <DrawerPrimitive.Title
+    (<DrawerPrimitive.Title
       data-slot="drawer-title"
       className={cn("text-foreground font-semibold", className)}
-      {...props} />
+      {...props} />)
   );
 }
 
@@ -112,10 +112,10 @@ function DrawerDescription({
   ...props
 }) {
   return (
-    <DrawerPrimitive.Description
+    (<DrawerPrimitive.Description
       data-slot="drawer-description"
       className={cn("text-muted-foreground text-sm", className)}
-      {...props} />
+      {...props} />)
   );
 }
 

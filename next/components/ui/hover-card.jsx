@@ -24,7 +24,7 @@ function HoverCardContent({
   ...props
 }) {
   return (
-    <HoverCardPrimitive.Portal data-slot="hover-card-portal">
+    (<HoverCardPrimitive.Portal data-slot="hover-card-portal">
       <HoverCardPrimitive.Content
         data-slot="hover-card-content"
         align={align}
@@ -34,7 +34,7 @@ function HoverCardContent({
           className
         )}
         {...props} />
-    </HoverCardPrimitive.Portal>
+    </HoverCardPrimitive.Portal>)
   );
 }
 

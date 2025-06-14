@@ -13,12 +13,12 @@ function Pagination({
   ...props
 }) {
   return (
-    <nav
+    (<nav
       role="navigation"
       aria-label="pagination"
       data-slot="pagination"
       className={cn("mx-auto flex w-full justify-center", className)}
-      {...props} />
+      {...props} />)
   );
 }
 
@@ -27,10 +27,10 @@ function PaginationContent({
   ...props
 }) {
   return (
-    <ul
+    (<ul
       data-slot="pagination-content"
       className={cn("flex flex-row items-center gap-1", className)}
-      {...props} />
+      {...props} />)
   );
 }
 
@@ -47,7 +47,7 @@ function PaginationLink({
   ...props
 }) {
   return (
-    <a
+    (<a
       aria-current={isActive ? "page" : undefined}
       data-slot="pagination-link"
       data-active={isActive}
@@ -55,7 +55,7 @@ function PaginationLink({
         variant: isActive ? "outline" : "ghost",
         size,
       }), className)}
-      {...props} />
+      {...props} />)
   );
 }
 
@@ -64,14 +64,14 @@ function PaginationPrevious({
   ...props
 }) {
   return (
-    <PaginationLink
+    (<PaginationLink
       aria-label="Go to previous page"
       size="default"
       className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
       {...props}>
       <ChevronLeftIcon />
       <span className="hidden sm:block">Previous</span>
-    </PaginationLink>
+    </PaginationLink>)
   );
 }
 
@@ -80,14 +80,14 @@ function PaginationNext({
   ...props
 }) {
   return (
-    <PaginationLink
+    (<PaginationLink
       aria-label="Go to next page"
       size="default"
       className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
       {...props}>
       <span className="hidden sm:block">Next</span>
       <ChevronRightIcon />
-    </PaginationLink>
+    </PaginationLink>)
   );
 }
 
@@ -96,14 +96,14 @@ function PaginationEllipsis({
   ...props
 }) {
   return (
-    <span
+    (<span
       aria-hidden
       data-slot="pagination-ellipsis"
       className={cn("flex size-9 items-center justify-center", className)}
       {...props}>
       <MoreHorizontalIcon className="size-4" />
       <span className="sr-only">More pages</span>
-    </span>
+    </span>)
   );
 }
 
