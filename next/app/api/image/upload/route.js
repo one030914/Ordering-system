@@ -13,10 +13,7 @@ export async function POST(req) {
         const file = formData.get("file");
 
         if (!file || typeof file === "string") {
-            return NextResponse.json(
-                { success: false, error: "未提供檔案" },
-                { status: 400 }
-            );
+            return NextResponse.json({ success: false, error: "未提供檔案" }, { status: 400 });
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
@@ -33,10 +30,7 @@ export async function POST(req) {
             throw error;
         }
 
-        const { data: urlData } = supabase
-            .storage
-            .from("images")
-            .getPublicUrl(data.path);
+        const { data: urlData } = supabase.storage.from("images").getPublicUrl(data.path);
 
         const publicUrl = urlData.publicUrl;
 

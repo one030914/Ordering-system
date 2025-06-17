@@ -8,25 +8,22 @@ export async function PATCH(request, { params }) {
     const userId = resolvedParams.userId;
 
     try {
-        // 1. 權限驗證
         const session = await auth();
         if (!session?.user) {
             return NextResponse.json({ error: "未授權" }, { status: 401 });
         }
 
-        // 只有 'OWNER' 角色才能執行此操作
         if (session.user.role !== "OWNER") {
             return NextResponse.json({ error: "無權限執行此操作" }, { status: 403 });
         }
 
         const dataToUpdate = await request.json();
-        const { role, ...otherData } = dataToUpdate; // 提取 role，允許更新其他字段
+        const { role, ...otherData } = dataToUpdate;
 
         if (!userId) {
             return NextResponse.json({ error: "用戶 ID 為必填項" }, { status: 400 });
         }
 
-        // 如果傳入了 role，則確保它是合法的 Role enum 值
         if (role) {
             const validRoles = ["CUSTOMER", "STAFF", "CHEF", "OWNER"];
             if (!validRoles.includes(role)) {
@@ -34,12 +31,11 @@ export async function PATCH(request, { params }) {
             }
         }
 
-        // 2. 更新用戶資料
         const updatedUser = await prisma.user.update({
             where: { id: userId },
             data: {
                 ...otherData,
-                ...(role && { role: role }), // 如果有 role 才更新 role
+                ...(role && { role: role }),
             },
             select: {
                 id: true,
@@ -47,10 +43,9 @@ export async function PATCH(request, { params }) {
                 email: true,
                 role: true,
                 updatedAt: true,
-            }, // 只回傳更新後的非敏感資訊
+            },
         });
 
-        // 3. 回傳更新後的用戶資料
         return NextResponse.json(updatedUser);
     } catch (error) {
         console.error(`更新用戶 ${userId} 時發生錯誤:`, error);

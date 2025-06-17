@@ -20,13 +20,11 @@ export async function PATCH(request, { params }) {
         const { orderId } = await params;
         const { status } = await request.json();
 
-        // 確保新狀態是合法的 OrderStatus enum 值
         const validStatuses = ["PENDING", "PREPARING", "READY", "COMPLETED", "CANCELLED"];
         if (!validStatuses.includes(status)) {
             return NextResponse.json({ error: "無效的訂單狀態" }, { status: 400 });
         }
 
-        // 獲取訂單詳情
         const order = await prisma.order.findUnique({
             where: { id: orderId },
             include: {
@@ -43,9 +41,6 @@ export async function PATCH(request, { params }) {
             return NextResponse.json({ error: "Order not found" }, { status: 404 });
         }
 
-        // 權限判斷：
-        // - 如果是 STAFF, CHEF, OWNER 角色，則有權限修改任何狀態。
-        // - 如果是訂單擁有者，並且嘗試將狀態改為 CANCELLED，則有權限。
         const isStaffOrOwner =
             session.user.role === "STAFF" ||
             session.user.role === "OWNER" ||
@@ -57,7 +52,6 @@ export async function PATCH(request, { params }) {
             return NextResponse.json({ error: "無權限執行此操作" }, { status: 403 });
         }
 
-        // 更新訂單狀態
         const updatedOrder = await prisma.order.update({
             where: { id: orderId },
             data: { status },
@@ -71,10 +65,8 @@ export async function PATCH(request, { params }) {
             },
         });
 
-        // 根據不同的狀態發送不同的 MQTT 訊息
         switch (status) {
             case "PREPARING":
-                // 通知顧客訂單正在製作
                 const acceptTopic = getAcceptCustomerOrderTopic(order.customerId);
                 publishMessage(
                     acceptTopic,
@@ -90,13 +82,11 @@ export async function PATCH(request, { params }) {
                     })
                 );
 
-                // 通知廚房新訂單
                 const kitchenTopic = getKitchenOrderTopic();
                 publishMessage(kitchenTopic, JSON.stringify(order));
                 break;
 
             case "READY":
-                // 通知顧客訂單已完成
                 const readyTopic = getKitchenReadyOrderTopic(order.customerId);
                 publishMessage(
                     readyTopic,
@@ -114,7 +104,6 @@ export async function PATCH(request, { params }) {
                 break;
 
             case "COMPLETED":
-                // 通知顧客訂單已領取
                 const completedTopic = getStaffCompletedOrderTopic(order.customerId);
                 publishMessage(
                     completedTopic,
@@ -132,8 +121,6 @@ export async function PATCH(request, { params }) {
                 break;
 
             case "CANCELLED":
-                // 通知顧客訂單已取消 (這裡不需要發送給所有人的 MQTT 訊息，因為顧客自己取消了)
-                // 可以考慮發送給 STAFF/OWNER 的私人通知
                 break;
         }
 

@@ -3,21 +3,18 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 
 export async function GET(request, { params }) {
-    const resolvedParams = await params; // 確保 params 物件本身被解析
-    const userId = resolvedParams.userId; // 然後取得 userId
+    const resolvedParams = await params;
+    const userId = resolvedParams.userId;
     try {
-        // 驗證用戶是否已登入
         const session = await auth();
         if (!session?.user) {
             return NextResponse.json({ error: "未授權" }, { status: 401 });
         }
 
-        // 確認請求的用戶 ID 是否與當前登入用戶相符
         if (session.user.id !== userId) {
             return NextResponse.json({ error: "無權限存取此資源" }, { status: 403 });
         }
 
-        // 從資料庫獲取通知
         const notifications = await prisma.notification.findMany({
             where: {
                 userId: userId,
@@ -55,9 +52,6 @@ export async function PATCH(request, { params }) {
             return NextResponse.json({ error: "未授權" }, { status: 401 });
         }
 
-        // 權限判斷：
-        // 1. 如果是用戶本人，可以修改自己的通知
-        // 2. 如果是 STAFF 或 OWNER 角色，可以修改任何用戶的通知
         if (
             session.user.id !== userId &&
             session.user.role !== "STAFF" &&
@@ -75,7 +69,7 @@ export async function PATCH(request, { params }) {
         const updatedNotification = await prisma.notification.update({
             where: {
                 id: notificationId,
-                userId: userId, // 確保通知是該用戶的
+                userId: userId,
             },
             data: {
                 isRead: true,

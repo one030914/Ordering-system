@@ -8,7 +8,6 @@ export async function GET(request, { params }) {
     const orderId = resolvedParams.orderId;
 
     try {
-        // 1. 權限驗證
         const session = await auth();
         if (!session?.user) {
             return NextResponse.json({ error: "未授權" }, { status: 401 });
@@ -18,7 +17,6 @@ export async function GET(request, { params }) {
             return NextResponse.json({ error: "缺少訂單 ID" }, { status: 400 });
         }
 
-        // 2. 查找訂單
         const order = await prisma.order.findUnique({
             where: {
                 id: orderId,
@@ -26,9 +24,8 @@ export async function GET(request, { params }) {
             include: {
                 customer: {
                     select: { id: true, name: true, email: true },
-                }, // 包含顧客資訊
+                },
                 items: {
-                    // 包含訂單項目及其菜單資訊
                     include: {
                         menuItem: true,
                     },
@@ -40,7 +37,6 @@ export async function GET(request, { params }) {
             return NextResponse.json({ error: "訂單不存在" }, { status: 404 });
         }
 
-        // 權限判斷：訂單擁有者或 STAFF/OWNER 可查看
         if (
             order.customerId !== session.user.id &&
             session.user.role !== "STAFF" &&
@@ -49,7 +45,6 @@ export async function GET(request, { params }) {
             return NextResponse.json({ error: "無權限查看此訂單" }, { status: 403 });
         }
 
-        // 3. 回傳訂單資料
         return NextResponse.json(order);
     } catch (error) {
         console.error(`獲取訂單 ${orderId} 詳情時發生錯誤:`, error);

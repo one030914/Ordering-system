@@ -23,7 +23,7 @@ export async function POST(req) {
         const fileName = `${Date.now()}_${file.name}`;
 
         const { data, error } = await supabase.storage
-            .from("uploads") // 請確保 Supabase 上已建立 bucket "uploads"
+            .from("uploads")
             .upload(fileName, buffer, {
                 contentType: file.type,
                 upsert: true,
