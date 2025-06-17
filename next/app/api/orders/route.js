@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
+import { getOrderCheckoutTopic } from "@/utils/mqttTopic";
+import { publishMessage } from "@/utils/mqttClient";
 
 // GET: 獲取所有訂單 (只有 OWNER/STAFF 可用)
 export async function GET(request) {
@@ -43,73 +45,44 @@ export async function GET(request) {
 // POST: 創建新訂單 (只有登入的 CUSTOMER 可以)
 export async function POST(request) {
     try {
-        // 1. 權限驗證 - 確保用戶已登入且為 CUSTOMER
         const session = await auth();
-        if (!session?.user || session.user.role !== "CUSTOMER") {
-            return NextResponse.json({ error: "未授權或無權限執行此操作" }, { status: 403 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const customerId = session.user.id;
-        const { items } = await request.json(); // 從請求體中獲取訂單項目
+        const { items, totalAmount } = await request.json();
 
-        if (!items || items.length === 0) {
-            return NextResponse.json({ error: "訂單中必須包含項目" }, { status: 400 });
-        }
-
-        // 2. 計算總金額並驗證菜單項目
-        let totalAmount = 0;
-        const orderItemsData = [];
-
-        for (const item of items) {
-            const menuItem = await prisma.menuItem.findUnique({
-                where: { id: item.menuItemId },
-            });
-
-            if (!menuItem || !menuItem.isAvailable) {
-                return NextResponse.json(
-                    { error: `菜單項目 ${item.menuItemId} 不存在或不可用` },
-                    { status: 400 }
-                );
-            }
-            if (item.quantity <= 0) {
-                return NextResponse.json(
-                    { error: `菜單項目 ${item.menuItemId} 數量必須大於 0` },
-                    { status: 400 }
-                );
-            }
-
-            totalAmount += menuItem.price * item.quantity;
-            orderItemsData.push({
-                menuItemId: item.menuItemId,
-                quantity: item.quantity,
-                specialRequest: item.specialRequest || null,
-            });
-        }
-
-        // 3. 創建訂單和訂單項目 (使用事務確保資料一致性)
-        const newOrder = await prisma.$transaction(async (tx) => {
-            const order = await tx.order.create({
-                data: {
-                    customerId: customerId,
-                    totalAmount: totalAmount,
-                    status: "PENDING", // 預設為待處理
-                    paymentStatus: false, // 預設為未付款
-                    items: {
-                        create: orderItemsData,
+        // 1. 創建訂單
+        const newOrder = await prisma.order.create({
+            data: {
+                customerId: session.user.id,
+                totalAmount,
+                status: "PENDING",
+                items: {
+                    create: items.map((item) => ({
+                        menuItemId: item.menuItemId,
+                        quantity: item.quantity,
+                        specialRequest: item.specialRequest,
+                    })),
+                },
+            },
+            include: {
+                items: {
+                    include: {
+                        menuItem: true,
                     },
                 },
-            });
-            return order;
+                customer: true,
+            },
         });
 
-        // 4. (可選) 觸發通知或 MQTT 訊息
-        // 在這裡可以新增邏輯，例如通知廚師有新訂單，或通知店員有新訂單需要確認付款
-        // await prisma.notification.create({ ... });
-        // publishOrderNotification(kitchenTopic, newOrder);
+        // 2. 發送 MQTT 訊息通知新訂單
+        const topic = getOrderCheckoutTopic();
+        publishMessage(topic, JSON.stringify(newOrder));
 
-        return NextResponse.json(newOrder, { status: 201 });
+        return NextResponse.json(newOrder);
     } catch (error) {
-        console.error("創建訂單時發生錯誤:", error);
-        return NextResponse.json({ error: "創建訂單失敗" }, { status: 500 });
+        console.error("Failed to create order:", error);
+        return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
     }
 }

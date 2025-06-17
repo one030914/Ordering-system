@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import { useMqttClient } from "@/hooks/useMqttClient";
 import { editOrderStatus, getPendingOrders } from "@/app/actions/order";
 import { addNotification } from "@/app/actions/notification";
-import { getOrderCheckoutTopic, getCustomerCancelOrderTopic } from "@/utils/mqttTopic";
+import {
+    getOrderCheckoutTopic,
+    getCustomerCancelOrderTopic,
+    getAcceptCustomerOrderTopic,
+    getKitchenOrderTopic,
+} from "@/utils/mqttTopic";
 
 export default function PendingOrdersPage() {
     const [orders, setOrders] = useState([]);
@@ -96,7 +101,7 @@ export default function PendingOrdersPage() {
             // 傳送通知
             const customerId = orders.find((order) => order.id === orderId).customerId;
 
-            // action
+            // 接受訂單，傳送通知給使用者
             let notificationRes = await addNotification(
                 {
                     orderId,
@@ -121,20 +126,6 @@ export default function PendingOrdersPage() {
                 }
                 notificationRes = await response.json();
             }
-
-            // 接受訂單，傳送通知給使用者
-            const topic = ""; // TODO: 設定 MQTT 主題
-            if (notificationRes && notificationRes.id) {
-                // TODO: 準備 MQTT 訊息內容
-                // TODO: 發布 MQTT 訊息(通知)
-            }
-
-            // 發布訂單資料到廚房
-            const kitchenTopic = ""; // TODO: 設定廚房 MQTT 主題
-
-            // TODO: 準備廚房訂單資料
-
-            // TODO: 發布廚房訂單資料到 MQTT
 
             if (!response.ok) {
                 alert("傳送通知失敗");

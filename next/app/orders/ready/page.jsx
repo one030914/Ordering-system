@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import useUser from "@/hooks/useUser";
 import { useMqttClient } from "@/hooks/useMqttClient";
 import { editOrderStatus, getOrderById, getReadyOrders } from "@/app/actions/order";
-import { getKitchenReadyOrderTopic } from "@/utils/mqttTopic";
+import { getKitchenReadyOrderTopic, getStaffCompletedOrderTopic } from "@/utils/mqttTopic";
 
 export default function ReadyOrdersPage() {
     const [orders, setOrders] = useState([]);
@@ -101,12 +101,6 @@ export default function ReadyOrdersPage() {
 
         // 取出訂單的顧客 ID
         const customerId = orderData.customer?.id;
-
-        // TODO: 設定 MQTT 主題
-        const topic = "";
-        // TODO: 準備發布交易完成的 MQTT 訊息
-
-        // TODO: 發布交易完成的 MQTT 訊息
     };
 
     return (

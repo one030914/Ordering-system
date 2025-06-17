@@ -1,24 +1,24 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
+import prisma from "@/lib/prisma";
+import {
+    getAcceptCustomerOrderTopic,
+    getKitchenOrderTopic,
+    getKitchenReadyOrderTopic,
+    getStaffCompletedOrderTopic,
+} from "@/utils/mqttTopic";
+import { publishMessage } from "@/utils/mqttClient";
 
 // PATCH: 更新訂單狀態 (STAFF, CHEF, OWNER 或訂單擁有者取消自己的訂單)
 export async function PATCH(request, { params }) {
-    const resolvedParams = await params;
-    const orderId = resolvedParams.orderId;
-
     try {
-        // 1. 權限驗證
         const session = await auth();
-        if (!session?.user) {
-            return NextResponse.json({ error: "未授權" }, { status: 401 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { orderId } = await params;
         const { status } = await request.json();
-
-        if (!orderId || !status) {
-            return NextResponse.json({ error: "缺少訂單 ID 或狀態" }, { status: 400 });
-        }
 
         // 確保新狀態是合法的 OrderStatus enum 值
         const validStatuses = ["PENDING", "PREPARING", "READY", "COMPLETED", "CANCELLED"];
@@ -26,13 +26,21 @@ export async function PATCH(request, { params }) {
             return NextResponse.json({ error: "無效的訂單狀態" }, { status: 400 });
         }
 
-        // 2. 查找訂單以進行權限判斷
+        // 獲取訂單詳情
         const order = await prisma.order.findUnique({
             where: { id: orderId },
+            include: {
+                customer: true,
+                items: {
+                    include: {
+                        menuItem: true,
+                    },
+                },
+            },
         });
 
         if (!order) {
-            return NextResponse.json({ error: "訂單不存在" }, { status: 404 });
+            return NextResponse.json({ error: "Order not found" }, { status: 404 });
         }
 
         // 權限判斷：
@@ -49,66 +57,89 @@ export async function PATCH(request, { params }) {
             return NextResponse.json({ error: "無權限執行此操作" }, { status: 403 });
         }
 
-        // 3. 更新訂單狀態
+        // 更新訂單狀態
         const updatedOrder = await prisma.order.update({
             where: { id: orderId },
-            data: {
-                status: status,
-                ...(status === "READY" && { completedAt: new Date() }), // 如果狀態變為 READY，記錄完成時間
-            },
+            data: { status },
             include: {
-                customer: { select: { id: true, email: true } },
+                customer: true,
+                items: {
+                    include: {
+                        menuItem: true,
+                    },
+                },
             },
         });
 
-        // 4. 根據狀態變化觸發通知/MQTT 訊息 (這裡只是範例，你需要根據你的 MQTT Topic 設計來發送)
-        if (status === "PREPARING") {
-            // 通知顧客：訂單正在準備中
-            await prisma.notification.create({
-                data: {
-                    userId: updatedOrder.customerId,
-                    orderId: updatedOrder.id,
-                    message: "您的訂單已確認，正在準備中！",
-                },
-            });
-            // 這裡可以發送 MQTT 訊息給廚房或顧客
-            // publishToMqtt("kitchen/new_order", updatedOrder);
-        } else if (status === "READY") {
-            // 通知顧客：餐點已完成，可取餐
-            await prisma.notification.create({
-                data: {
-                    userId: updatedOrder.customerId,
-                    orderId: updatedOrder.id,
-                    message: "您的餐點已完成，請憑訂單號碼前往櫃檯取餐！",
-                },
-            });
-            // 這裡可以發送 MQTT 訊息給店員（有餐點待取）或顧客
-            // publishToMqtt(`customer/${updatedOrder.customerId}/order_ready`, updatedOrder);
-        } else if (status === "COMPLETED") {
-            // 通知顧客：訂單已完成取餐 (如果你有取餐確認流程)
-            await prisma.notification.create({
-                data: {
-                    userId: updatedOrder.customerId,
-                    orderId: updatedOrder.id,
-                    message: "您的訂單已成功取餐，感謝您的光臨！",
-                },
-            });
-            // publishToMqtt(`customer/${updatedOrder.customerId}/order_completed`, updatedOrder);
-        } else if (status === "CANCELLED") {
-            // 通知顧客：訂單已取消
-            await prisma.notification.create({
-                data: {
-                    userId: updatedOrder.customerId,
-                    orderId: updatedOrder.id,
-                    message: "您的訂單已取消。",
-                },
-            });
-            // publishToMqtt(`customer/${updatedOrder.customerId}/order_cancelled`, updatedOrder);
+        // 根據不同的狀態發送不同的 MQTT 訊息
+        switch (status) {
+            case "PREPARING":
+                // 通知顧客訂單正在製作
+                const acceptTopic = getAcceptCustomerOrderTopic(order.customerId);
+                publishMessage(
+                    acceptTopic,
+                    JSON.stringify({
+                        id: orderId,
+                        title: "訂單",
+                        type: "order",
+                        content: `訂單 ${orderId.slice(0, 8)} 正在製作中`,
+                        read: false,
+                        time: new Date().toLocaleString(),
+                        status: "PREPARING",
+                        orderId: orderId,
+                    })
+                );
+
+                // 通知廚房新訂單
+                const kitchenTopic = getKitchenOrderTopic();
+                publishMessage(kitchenTopic, JSON.stringify(order));
+                break;
+
+            case "READY":
+                // 通知顧客訂單已完成
+                const readyTopic = getKitchenReadyOrderTopic(order.customerId);
+                publishMessage(
+                    readyTopic,
+                    JSON.stringify({
+                        id: orderId,
+                        title: "訂單",
+                        type: "order",
+                        content: `可領取訂單 ${orderId.slice(0, 8)}`,
+                        read: false,
+                        time: new Date().toLocaleString(),
+                        status: "READY",
+                        orderId: orderId,
+                    })
+                );
+                break;
+
+            case "COMPLETED":
+                // 通知顧客訂單已領取
+                const completedTopic = getStaffCompletedOrderTopic(order.customerId);
+                publishMessage(
+                    completedTopic,
+                    JSON.stringify({
+                        id: orderId,
+                        title: "訂單",
+                        type: "order",
+                        content: `訂單 ${orderId.slice(0, 8)} 已完成`,
+                        read: false,
+                        time: new Date().toLocaleString(),
+                        status: "COMPLETED",
+                        orderId: orderId,
+                    })
+                );
+                break;
+
+            case "CANCELLED":
+                // 通知顧客訂單已取消 (這裡不需要發送給所有人的 MQTT 訊息，因為顧客自己取消了)
+                // 可以考慮發送給 STAFF/OWNER 的私人通知
+                break;
         }
 
         return NextResponse.json(updatedOrder);
     } catch (error) {
-        console.error(`更新訂單 ${orderId} 狀態時發生錯誤:`, error);
-        return NextResponse.json({ error: "更新訂單狀態失敗" }, { status: 500 });
+        console.error("Failed to update order status:", error);
+        return NextResponse.json({ error: "Failed to update order status" }, { status: 500 });
     }
 }

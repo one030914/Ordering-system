@@ -79,6 +79,7 @@ export default function CheckoutPage() {
                     body: JSON.stringify({
                         items: orderItems,
                         customerId,
+                        totalAmount: getTotalPrice(),
                     }),
                 });
                 if (!response.ok) {
