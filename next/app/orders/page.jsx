@@ -120,9 +120,9 @@ export default function OrdersPage() {
             );
 
             // 發布訂單取消的 MQTT 訊息
-            const topic = ""; // TODO: 設定 MQTT 主題
+            const topic = ""; 
+            // TODO: 設定 MQTT 主題
             // TODO: 準備訊息內容
-
             // TODO: 發布 MQTT 訊息
         } catch (error) {
             alert("訂單取消失敗");

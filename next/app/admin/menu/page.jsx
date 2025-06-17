@@ -102,36 +102,31 @@ export default function MenuManagementPage() {
             isAvailable: item.isAvailable,
         });
     };
+const handleEdit = async (menuId) => {
+    try {
+        const response = await fetch(`/api/menu/${menuId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(editItem),
+        });
 
-    const handleEdit = async (menuId) => {
-        try {
-            const updatedItemToSend = {
-                ...editItem,
-                price: parseFloat(editItem.price),
-            };
-
-            const response = await fetch(`/api/menu/${menuId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(updatedItemToSend),
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText);
-            }
-            const updatedItem = await response.json();
-
-            setMenuItems((prev) =>
-                prev.map((item) => (item.id === menuId ? updatedItem : item))
-            );
-            setEditingId(null);
-        } catch (error) {
-            console.error("更新失敗:", error.message);
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("後端回傳錯誤內容：", errorText);
+            throw new Error(errorText || "Unknown error from API");
         }
-    };
+
+        const updatedItem = await response.json();
+        setMenuItems((prev) =>
+            prev.map((item) => (item.id === menuId ? updatedItem : item))
+        );
+        setEditingId(null);
+    } catch (error) {
+        console.error("更新失敗:", error.message, error);
+    }
+};
 
     const cancelEdit = () => {
         setEditingId(null);
@@ -326,20 +321,18 @@ export default function MenuManagementPage() {
                                         價格
                                     </label>
                                     <input
-                                        type="number"
-                                        value={editItem.price}
-                                        onChange={(e) =>
-                                            setEditItem({
-                                                ...editItem,
-                                                price: parseFloat(
-                                                    e.target.value
-                                                ),
-                                            })
-                                        }
-                                        className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-pink-400"
-                                        required
-                                        placeholder="價格"
-                                    />
+  type="number"
+  value={isNaN(editItem.price) ? '' : editItem.price}
+  onChange={(e) =>
+    setEditItem({
+      ...editItem,
+      price: parseFloat(e.target.value) || 0,
+    })
+  }
+  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-pink-400"
+  required
+  placeholder="價格"
+/>
                                     <label className="block mb-1 ms-2 font-medium text-gray-700">
                                         敘述
                                     </label>

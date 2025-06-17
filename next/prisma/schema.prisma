@@ -10,8 +10,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -31,61 +31,67 @@ enum OrderStatus {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String         @id @default(cuid())
+  email         String         @unique
   name          String
   password      String
-  role          Role
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  role          Role           @default(CUSTOMER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   orders        Order[]
   notifications Notification[]
 }
 
 model MenuItem {
-  id            String    @id @default(cuid())
-  name          String
-  description   String?
-  price         Float
-  imageUrl      String?
-  isAvailable   Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  orderItems    OrderItem[]
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  imageUrl    String?
+  isAvailable Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
 }
 
 model Order {
-  id            String    @id @default(cuid())
-  customer      User      @relation(fields: [customerId], references: [id])
+  id            String         @id @default(cuid())
+  customer      User           @relation(fields: [customerId], references: [id])
   customerId    String
-  status        OrderStatus @default(PENDING)
+  status        OrderStatus    @default(PENDING)
   totalAmount   Float
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   items         OrderItem[]
-  paymentStatus Boolean   @default(false)
+  paymentStatus Boolean        @default(false)
   completedAt   DateTime?
   notifications Notification[]
 }
 
 model OrderItem {
-  id            String    @id @default(cuid())
-  order         Order     @relation(fields: [orderId], references: [id])
-  orderId       String
-  menuItem      MenuItem  @relation(fields: [menuItemId], references: [id])
-  menuItemId    String
-  quantity      Int       @default(1)
+  id             String   @id @default(cuid())
+  order          Order    @relation(fields: [orderId], references: [id])
+  orderId        String
+  menuItem       MenuItem @relation(fields: [menuItemId], references: [id])
+  menuItemId     String
+  quantity       Int      @default(1)
   specialRequest String?
-  createdAt     DateTime  @default(now())
+  createdAt      DateTime @default(now())
 }
 
 model Notification {
-  id            String    @id @default(cuid())
-  user          User      @relation(fields: [userId], references: [id])
-  userId        String
-  order         Order     @relation(fields: [orderId], references: [id])
-  orderId       String
-  message       String
-  isRead        Boolean   @default(false)
-  createdAt     DateTime  @default(now())
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Todo {
+  id     Int     @id @default(autoincrement())
+  title  String
+  isDone Boolean @default(false)
 }

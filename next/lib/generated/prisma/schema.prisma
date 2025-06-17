@@ -35,7 +35,7 @@ model User {
   email         String         @unique
   name          String
   password      String
-  role          Role
+  role          Role           @default(CUSTOMER)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   orders        Order[]
@@ -88,4 +88,10 @@ model Notification {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model Todo {
+  id     Int     @id @default(autoincrement())
+  title  String
+  isDone Boolean @default(false)
 }

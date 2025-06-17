@@ -10,8 +10,7 @@ export default function Navbar() {
     const { user, setUser } = useUser();
     const { data: session, status } = useSession(); // status: "loading" | "authenticated" | "unauthenticated"
     const [isLogin, setIsLogin] = useState(
-        session?.user?.provider === "google" ||
-        session?.user?.provider === "github"
+        session?.user?.provider === "google" || session?.user?.provider === "github"
     );
 
     useEffect(() => {

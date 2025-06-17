@@ -69,24 +69,29 @@ export default function CheckoutPage() {
 
             // action
             let orderData = await addOrder({
-                orderItems,
-                customerId,
-            });
-            if (!orderData) {
-                const response = await fetch(`/api/orders`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        orderItems,
-                        customerId,
-                    }),
-                });
-                if (!response.ok) {
-                    alert("送出訂單失敗");
-                    return;
-                }
-                orderData = await response.json();
-            }
+    orderItems,
+    customerId,
+});
+
+if (!orderData) {
+    const response = await fetch(`/api/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            userId: customerId,
+            items: orderItems,
+            totalPrice: getTotalPrice(),
+        }),
+    });
+
+    if (!response.ok) {
+        alert("送出訂單失敗");
+        return;
+    }
+
+    orderData = await response.json();
+}
+
             // TODO: 發布 MQTT 訊息
 
             // 清空購物車
