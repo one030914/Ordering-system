@@ -82,9 +82,7 @@ export default function KitchenPage() {
             setOrders((prev) => prev.filter((order) => order.id !== orderId));
 
             // 傳送通知
-            const customerId = orders.find(
-                (order) => order.id === orderId
-            ).customerId;
+            const customerId = orders.find((order) => order.id === orderId).customerId;
 
             let notificationRes = await addNotification(
                 {
@@ -94,17 +92,15 @@ export default function KitchenPage() {
                 customerId
             );
             if (!notificationRes) {
-                response = await fetch(
-                    `/api/notifications/users/${customerId}`,
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            orderId,
-                            message: `可領取訂單 ${orderId.slice(0, 8)}`,
-                        }),
-                    }
-                );
+                response = await fetch(`/api/notifications`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        userId: customerId,
+                        orderId,
+                        message: `可領取訂單 ${orderId.slice(0, 8)}`,
+                    }),
+                });
                 if (!response.ok) {
                     alert("傳送通知失敗");
                     return;
@@ -126,14 +122,10 @@ export default function KitchenPage() {
 
     return (
         <main className="max-w-7xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-extrabold mb-6 text-gray-800">
-                👨‍🍳 廚房訂單看板
-            </h1>
+            <h1 className="text-3xl font-extrabold mb-6 text-gray-800">👨‍🍳 廚房訂單看板</h1>
 
             {orders.length === 0 ? (
-                <div className="text-center text-gray-500 mt-12 text-lg">
-                    暫無待處理訂單 🍳
-                </div>
+                <div className="text-center text-gray-500 mt-12 text-lg">暫無待處理訂單 🍳</div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {orders.map((order, idx) => (
@@ -147,9 +139,7 @@ export default function KitchenPage() {
                                         訂單 #{order.id.slice(0, 8)}
                                     </h2>
                                     <p className="text-sm text-gray-500">
-                                        {new Date(
-                                            order.createdAt
-                                        ).toLocaleString()}
+                                        {new Date(order.createdAt).toLocaleString()}
                                     </p>
                                 </div>
                                 {/* <span className="text-xs font-medium px-3 py-1 rounded-full bg-blue-100 text-blue-700">
@@ -162,14 +152,12 @@ export default function KitchenPage() {
                                         <li key={`${item.id}-${idx}`}>
                                             <div className="flex justify-between items-start">
                                                 <span className="font-medium">
-                                                    {item.menuItem.name} ×{" "}
-                                                    {item.quantity}
+                                                    {item.menuItem.name} × {item.quantity}
                                                 </span>
                                             </div>
                                             {item.specialRequest && (
                                                 <div className="mt-1 text-yellow-700 bg-yellow-50 border border-yellow-200 rounded px-2 py-1">
-                                                    <strong>備註：</strong>{" "}
-                                                    {item.specialRequest}
+                                                    <strong>備註：</strong> {item.specialRequest}
                                                 </div>
                                             )}
                                         </li>
@@ -178,11 +166,7 @@ export default function KitchenPage() {
                             </div>
 
                             <button
-                                onClick={() =>
-                                    handleCompleteOrder(
-                                        order.orderId || order.id
-                                    )
-                                }
+                                onClick={() => handleCompleteOrder(order.orderId || order.id)}
                                 className="mt-5 w-full bg-green-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700 transition"
                             >
                                 ✅ 標記為已完成

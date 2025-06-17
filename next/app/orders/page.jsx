@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useMqttClient } from "@/hooks/useMqttClient";
 import useUser from "@/hooks/useUser";
 import { editOrderStatus, getCustomerOrder } from "@/app/actions/order";
+import { getKitchenReadyOrderTopic } from "@/utils/mqttTopic";
 
 export default function OrdersPage() {
     const [orders, setOrders] = useState([]);
@@ -26,9 +27,7 @@ export default function OrdersPage() {
                 let data = await getCustomerOrder(user.id);
                 if (!data) {
                     // api
-                    const response = await fetch(
-                        `/api/orders/customers/${user.id}`
-                    );
+                    const response = await fetch(`/api/orders/customers/${user.id}`);
                     data = await response.json();
                 }
                 setOrders(data);
@@ -51,9 +50,7 @@ export default function OrdersPage() {
         const orderId = payload.orderId;
 
         setOrders((prev) => {
-            return prev.map((order) =>
-                order.id === orderId ? { ...order, status } : order
-            );
+            return prev.map((order) => (order.id === orderId ? { ...order, status } : order));
         });
     }, [messages]);
 
@@ -113,16 +110,14 @@ export default function OrdersPage() {
             }
             setOrders((prev) =>
                 prev.map((order) =>
-                    order.id !== orderId
-                        ? order
-                        : { ...order, status: "CANCELLED" }
+                    order.id !== orderId ? order : { ...order, status: "CANCELLED" }
                 )
             );
 
             // 發布訂單取消的 MQTT 訊息
-            const topic = ""; 
-            // TODO: 設定 MQTT 主題
+            const topic = ""; // TODO: 設定 MQTT 主題
             // TODO: 準備訊息內容
+
             // TODO: 發布 MQTT 訊息
         } catch (error) {
             alert("訂單取消失敗");
@@ -136,9 +131,7 @@ export default function OrdersPage() {
                 </h1>
 
                 {orders.length === 0 ? (
-                    <p className="text-gray-500 text-center sm:text-left">
-                        您目前沒有任何訂單。
-                    </p>
+                    <p className="text-gray-500 text-center sm:text-left">您目前沒有任何訂單。</p>
                 ) : (
                     <div className="space-y-6">
                         {orders.map((order) => (
@@ -152,9 +145,7 @@ export default function OrdersPage() {
                                             訂單 #{order.id.slice(0, 8)}
                                         </h3>
                                         <p className="text-sm text-gray-500">
-                                            {new Date(
-                                                order.createdAt
-                                            ).toLocaleString()}
+                                            {new Date(order.createdAt).toLocaleString()}
                                         </p>
                                     </div>
                                     <span
@@ -168,8 +159,7 @@ export default function OrdersPage() {
 
                                 <div className="mb-3 space-y-1">
                                     <p className="text-gray-700">
-                                        <strong>總金額：</strong> $
-                                        {order.totalAmount.toFixed(2)}
+                                        <strong>總金額：</strong> ${order.totalAmount.toFixed(2)}
                                     </p>
                                 </div>
 
@@ -184,23 +174,19 @@ export default function OrdersPage() {
                                                 className="flex justify-between text-sm text-gray-600"
                                             >
                                                 <span>
-                                                    {item.menuItem.name} ×{" "}
-                                                    {item.quantity}
+                                                    {item.menuItem.name} × {item.quantity}
                                                     {item.specialRequest && (
                                                         <span className="block text-xs text-gray-400">
                                                             備註：
-                                                            {
-                                                                item.specialRequest
-                                                            }
+                                                            {item.specialRequest}
                                                         </span>
                                                     )}
                                                 </span>
                                                 <span>
                                                     $
-                                                    {(
-                                                        item.menuItem.price *
-                                                        item.quantity
-                                                    ).toFixed(2)}
+                                                    {(item.menuItem.price * item.quantity).toFixed(
+                                                        2
+                                                    )}
                                                 </span>
                                             </li>
                                         ))}
@@ -210,9 +196,7 @@ export default function OrdersPage() {
                                     <div className="mt-4 text-center sm:text-right">
                                         <button
                                             onClick={() => {
-                                                handleCancelOrderButton(
-                                                    order.id
-                                                );
+                                                handleCancelOrderButton(order.id);
                                             }}
                                             className="inline-block bg-gradient-to-r from-red-400 to-red-600 text-white px-5 py-2 rounded-md hover:opacity-90 transition"
                                         >

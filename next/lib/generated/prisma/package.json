@@ -1,5 +1,5 @@
 {
-  "name": "prisma-client-d2d1dc05b3d245f42fb5f5daa35c5187feab70d10c30dd9a5bb6d01e9eef0f4d",
+  "name": "prisma-client-a98f947a9abb0e96134338735500e68c51a1e6cec38eb2456781f3005b94d90e",
   "main": "index.js",
   "types": "index.d.ts",
   "browser": "index-browser.js",
@@ -97,17 +97,11 @@
       "import": "./runtime/binary.mjs",
       "default": "./runtime/binary.mjs"
     },
-    "./runtime/wasm-engine-edge": {
-      "types": "./runtime/wasm-engine-edge.d.ts",
-      "require": "./runtime/wasm-engine-edge.js",
-      "import": "./runtime/wasm-engine-edge.mjs",
-      "default": "./runtime/wasm-engine-edge.mjs"
-    },
-    "./runtime/wasm-compiler-edge": {
-      "types": "./runtime/wasm-compiler-edge.d.ts",
-      "require": "./runtime/wasm-compiler-edge.js",
-      "import": "./runtime/wasm-compiler-edge.mjs",
-      "default": "./runtime/wasm-compiler-edge.mjs"
+    "./runtime/wasm": {
+      "types": "./runtime/wasm.d.ts",
+      "require": "./runtime/wasm.js",
+      "import": "./runtime/wasm.mjs",
+      "default": "./runtime/wasm.mjs"
     },
     "./runtime/edge": {
       "types": "./runtime/edge.d.ts",
@@ -141,6 +135,6 @@
     },
     "./*": "./*"
   },
-  "version": "6.9.0",
+  "version": "6.8.2",
   "sideEffects": false
 }

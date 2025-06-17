@@ -19,7 +19,7 @@ export default function useNotifications() {
 
     // 初始載入通知
     useEffect(() => {
-        if (userLoading || !user.id) {
+        if (userLoading || !user || !user.id) {
             return;
         }
 

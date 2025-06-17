@@ -41,7 +41,7 @@ export default function AdminUsersPage() {
         setUsers((prev) =>
             prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
         );
-        const response = await fetch(`/api/users/${userId}/role`, {
+        const response = await fetch(`/api/users/${userId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ role: newRole }),

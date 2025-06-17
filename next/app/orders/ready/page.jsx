@@ -4,11 +4,8 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import useUser from "@/hooks/useUser";
 import { useMqttClient } from "@/hooks/useMqttClient";
-import {
-    editOrderStatus,
-    getOrderById,
-    getReadyOrders,
-} from "@/app/actions/order";
+import { editOrderStatus, getOrderById, getReadyOrders } from "@/app/actions/order";
+import { getKitchenReadyOrderTopic } from "@/utils/mqttTopic";
 
 export default function ReadyOrdersPage() {
     const [orders, setOrders] = useState([]);
@@ -115,9 +112,7 @@ export default function ReadyOrdersPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-pink-50 to-red-50 py-10 px-6">
             <div className="max-w-5xl mx-auto">
-                <h1 className="text-3xl font-bold text-gray-800 mb-8">
-                    🍱 完成的訂單
-                </h1>
+                <h1 className="text-3xl font-bold text-gray-800 mb-8">🍱 完成的訂單</h1>
 
                 {loading ? (
                     <div className="space-y-4">
@@ -133,10 +128,7 @@ export default function ReadyOrdersPage() {
                         🎉 目前沒有完成的訂單
                     </div>
                 ) : (
-                    <motion.div
-                        layout
-                        className="grid grid-cols-1 sm:grid-cols-2 gap-6"
-                    >
+                    <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {orders.map((order) => (
                             <motion.div
                                 key={order.id}
@@ -170,9 +162,7 @@ export default function ReadyOrdersPage() {
                                 <button
                                     className="mt-4 w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-md font-semibold transition"
                                     onClick={() => {
-                                        handleCompleteButton(
-                                            order.orderId || order.id
-                                        );
+                                        handleCompleteButton(order.orderId || order.id);
                                     }}
                                 >
                                     ✅ 已交付

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useMqttClient } from "@/hooks/useMqttClient";
 import { editOrderStatus, getPendingOrders } from "@/app/actions/order";
 import { addNotification } from "@/app/actions/notification";
+import { getOrderCheckoutTopic, getCustomerCancelOrderTopic } from "@/utils/mqttTopic";
 
 export default function PendingOrdersPage() {
     const [orders, setOrders] = useState([]);
@@ -16,10 +17,7 @@ export default function PendingOrdersPage() {
 
     useEffect(() => {
         // 設定 MQTT 主題
-        const newTopics = [
-            getOrderCheckoutTopic(),
-            getCustomerCancelOrderTopic("#"),
-        ];
+        const newTopics = [getOrderCheckoutTopic(), getCustomerCancelOrderTopic("#")];
         setTopics(newTopics);
 
         const getOrders = async () => {
@@ -57,9 +55,7 @@ export default function PendingOrdersPage() {
                 const newOrder = JSON.parse(lastMessage.payload);
                 setOrders((prev) => {
                     // 檢查是否已存在相同 ID 的訂單
-                    const exists = prev.some(
-                        (order) => order.id === newOrder.id
-                    );
+                    const exists = prev.some((order) => order.id === newOrder.id);
                     return exists ? prev : [newOrder, ...prev];
                 });
             } catch (err) {
@@ -70,9 +66,7 @@ export default function PendingOrdersPage() {
             try {
                 const payload = JSON.parse(lastMessage.payload);
                 const orderId = payload.orderId;
-                setOrders((prev) =>
-                    prev.filter((order) => order.id !== orderId)
-                );
+                setOrders((prev) => prev.filter((order) => order.id !== orderId));
             } catch (err) {
                 console.error("無法解析取消訂單的 MQTT 訊息:", err);
             }
@@ -100,9 +94,7 @@ export default function PendingOrdersPage() {
             setOrders((prev) => prev.filter((order) => order.id !== orderId));
 
             // 傳送通知
-            const customerId = orders.find(
-                (order) => order.id === orderId
-            ).customerId;
+            const customerId = orders.find((order) => order.id === orderId).customerId;
 
             // action
             let notificationRes = await addNotification(
@@ -114,17 +106,15 @@ export default function PendingOrdersPage() {
             );
             if (!notificationRes) {
                 // api
-                response = await fetch(
-                    `/api/notifications/users/${customerId}`,
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            orderId,
-                            message: `訂單 ${orderId.slice(0, 8)} 正在製作中`,
-                        }),
-                    }
-                );
+                response = await fetch(`/api/notifications`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        userId: customerId,
+                        orderId,
+                        message: `訂單 ${orderId.slice(0, 8)} 正在製作中`,
+                    }),
+                });
                 if (!response.ok) {
                     alert("傳送通知失敗");
                     return;
@@ -163,9 +153,7 @@ export default function PendingOrdersPage() {
                 </h1>
 
                 {orders.length === 0 ? (
-                    <p className="text-gray-500 text-center sm:text-left">
-                        目前沒有待處理訂單。
-                    </p>
+                    <p className="text-gray-500 text-center sm:text-left">目前沒有待處理訂單。</p>
                 ) : (
                     <div className="space-y-6">
                         {orders.map((order, idx) => (
@@ -179,9 +167,7 @@ export default function PendingOrdersPage() {
                                             訂單 #{order.id.slice(0, 8)}
                                         </h3>
                                         <p className="text-sm text-gray-500">
-                                            {new Date(
-                                                order.createdAt
-                                            ).toLocaleString()}
+                                            {new Date(order.createdAt).toLocaleString()}
                                         </p>
                                     </div>
                                     <div></div>
@@ -189,12 +175,10 @@ export default function PendingOrdersPage() {
 
                                 <div className="mb-3 space-y-1">
                                     <p className="text-gray-700">
-                                        <strong>總金額：</strong> $
-                                        {order.totalAmount.toFixed(2)}
+                                        <strong>總金額：</strong> ${order.totalAmount.toFixed(2)}
                                     </p>
                                     <p className="text-gray-700">
-                                        <strong>顧客：</strong>{" "}
-                                        {order.customer.name}
+                                        <strong>顧客：</strong> {order.customer.name}
                                     </p>
                                 </div>
 
@@ -209,23 +193,19 @@ export default function PendingOrdersPage() {
                                                 className="flex justify-between text-sm text-gray-600"
                                             >
                                                 <span>
-                                                    {item.menuItem.name} ×{" "}
-                                                    {item.quantity}
+                                                    {item.menuItem.name} × {item.quantity}
                                                     {item.specialRequest && (
                                                         <span className="block text-xs text-gray-400">
                                                             備註：
-                                                            {
-                                                                item.specialRequest
-                                                            }
+                                                            {item.specialRequest}
                                                         </span>
                                                     )}
                                                 </span>
                                                 <span>
                                                     $
-                                                    {(
-                                                        item.menuItem.price *
-                                                        item.quantity
-                                                    ).toFixed(2)}
+                                                    {(item.menuItem.price * item.quantity).toFixed(
+                                                        2
+                                                    )}
                                                 </span>
                                             </li>
                                         ))}
@@ -235,9 +215,7 @@ export default function PendingOrdersPage() {
                                 <div className="mt-6 flex flex-col sm:flex-row justify-end gap-3">
                                     {order.status === "PENDING" && (
                                         <button
-                                            onClick={() =>
-                                                handleAcceptOrder(order.id)
-                                            }
+                                            onClick={() => handleAcceptOrder(order.id)}
                                             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
                                         >
                                             接受訂單

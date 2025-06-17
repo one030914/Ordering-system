@@ -84,15 +84,15 @@ export default function MenuPage() {
                                         key={item.id}
                                         className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition"
                                     >
-                                         {item.imageUrl && (
+                                        {item.imageUrl && (
                                             <Image
                                                 src={item.imageUrl}
                                                 alt={item.name}
                                                 width={400}
                                                 height={250}
-                                                 className="w-full h-48 object-cover rounded-md mb-3"
+                                                className="w-full h-48 object-cover rounded-md mb-3"
                                             />
-                                        )} 
+                                        )}
                                         <h3 className="font-bold text-lg text-gray-800">
                                             {item.name}
                                         </h3>

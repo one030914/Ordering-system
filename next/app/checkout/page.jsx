@@ -69,29 +69,24 @@ export default function CheckoutPage() {
 
             // action
             let orderData = await addOrder({
-    orderItems,
-    customerId,
-});
-
-if (!orderData) {
-    const response = await fetch(`/api/orders`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            userId: customerId,
-            items: orderItems,
-            totalPrice: getTotalPrice(),
-        }),
-    });
-
-    if (!response.ok) {
-        alert("送出訂單失敗");
-        return;
-    }
-
-    orderData = await response.json();
-}
-
+                orderItems,
+                customerId,
+            });
+            if (!orderData) {
+                const response = await fetch(`/api/orders`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        items: orderItems,
+                        customerId,
+                    }),
+                });
+                if (!response.ok) {
+                    alert("送出訂單失敗");
+                    return;
+                }
+                orderData = await response.json();
+            }
             // TODO: 發布 MQTT 訊息
 
             // 清空購物車
@@ -107,9 +102,7 @@ if (!orderData) {
 
     return (
         <div className="container mx-auto p-6">
-            <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-                確認訂單
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">確認訂單</h1>
 
             {cart.length === 0 ? (
                 <div className="text-center text-gray-500 text-lg mt-20">
@@ -120,33 +113,21 @@ if (!orderData) {
                     onSubmit={handleSubmitOrder}
                     className="max-w-2xl mx-auto bg-white shadow-lg rounded-xl p-6 space-y-6"
                 >
-                    <h2 className="text-xl font-semibold text-gray-700">
-                        訂單明細
-                    </h2>
+                    <h2 className="text-xl font-semibold text-gray-700">訂單明細</h2>
 
                     <ul className="divide-y">
                         {cart.map((cartItem) => {
-                            const menuItem = menuItems.find(
-                                (item) => item.id === cartItem.id
-                            );
+                            const menuItem = menuItems.find((item) => item.id === cartItem.id);
                             if (!menuItem) return null;
 
                             return (
-                                <li
-                                    key={cartItem.id}
-                                    className="py-4 space-y-2"
-                                >
+                                <li key={cartItem.id} className="py-4 space-y-2">
                                     <div className="flex justify-between items-center">
                                         <span className="text-gray-800 font-medium">
-                                            {menuItem.name} ×{" "}
-                                            {cartItem.quantity}
+                                            {menuItem.name} × {cartItem.quantity}
                                         </span>
                                         <span className="text-right font-semibold text-gray-700">
-                                            $
-                                            {(
-                                                menuItem.price *
-                                                cartItem.quantity
-                                            ).toFixed(2)}
+                                            ${(menuItem.price * cartItem.quantity).toFixed(2)}
                                         </span>
                                     </div>
                                     <div>
@@ -161,15 +142,11 @@ if (!orderData) {
                                             className="w-full border rounded-md p-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-300 resize-none"
                                             rows={2}
                                             placeholder="例如：去冰、少糖..."
-                                            value={
-                                                specialRequests[cartItem.id] ||
-                                                ""
-                                            }
+                                            value={specialRequests[cartItem.id] || ""}
                                             onChange={(e) =>
                                                 setSpecialRequests((prev) => ({
                                                     ...prev,
-                                                    [cartItem.id]:
-                                                        e.target.value,
+                                                    [cartItem.id]: e.target.value,
                                                 }))
                                             }
                                         />

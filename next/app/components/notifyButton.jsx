@@ -16,10 +16,7 @@ export default function NotifyButton() {
             return;
         }
         const handleClickOutside = (event) => {
-            if (
-                wrapperRef.current &&
-                !wrapperRef.current.contains(event.target)
-            ) {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
                 setShowNotify(false);
             }
         };
@@ -42,12 +39,9 @@ export default function NotifyButton() {
         );
 
         try {
-            const response = await fetch(
-                `/api/notifications/users/${user.id}/isRead`,
-                {
-                    method: "PATCH",
-                }
-            );
+            const response = await fetch(`/api/notifications/users/${user.id}/isRead`, {
+                method: "PATCH",
+            });
             if (!response.ok) {
                 alert("切換已讀通知失敗");
             }
@@ -56,15 +50,12 @@ export default function NotifyButton() {
         }
     };
     const handleDeleteNotification = async (nId) => {
-        const data = await deleteNotification(nId);
-        if (!data) {
-            const response = await fetch(`/api/notifications/${nId}`, {
-                method: "DELETE",
-            });
-            if (!response.ok) {
-                alert("刪除通知失敗");
-                return;
-            }
+        const response = await fetch(`/api/notifications/${nId}`, {
+            method: "DELETE",
+        });
+        if (!response.ok) {
+            alert("刪除通知失敗");
+            return;
         }
         setNotifications(notifications.filter((n) => n.id !== nId));
     };
@@ -88,16 +79,11 @@ export default function NotifyButton() {
                     {notifications.length > 0 ? (
                         <ul className="divide-y divide-gray-100 max-h-64 overflow-y-auto">
                             {notifications.map((n) => (
-                                <li
-                                    key={n.id}
-                                    className="px-4 py-3 hover:bg-gray-100 transition"
-                                >
+                                <li key={n.id} className="px-4 py-3 hover:bg-gray-100 transition">
                                     <div className="font-semibold flex justify-between text-gray-800">
                                         <p>{n.title}</p>
                                         <button
-                                            onClick={() =>
-                                                handleDeleteNotification(n.id)
-                                            }
+                                            onClick={() => handleDeleteNotification(n.id)}
                                             style={{
                                                 width: "32px",
                                                 height: "32px",
@@ -110,19 +96,13 @@ export default function NotifyButton() {
                                             X
                                         </button>
                                     </div>
-                                    <div className="text-sm text-gray-800">
-                                        {n.content}
-                                    </div>
-                                    <div className="text-xs text-gray-500">
-                                        {n.time}
-                                    </div>
+                                    <div className="text-sm text-gray-800">{n.content}</div>
+                                    <div className="text-xs text-gray-500">{n.time}</div>
                                 </li>
                             ))}
                         </ul>
                     ) : (
-                        <div className="p-5 text-center text-gray-500 text-sm">
-                            目前沒有通知
-                        </div>
+                        <div className="p-5 text-center text-gray-500 text-sm">目前沒有通知</div>
                     )}
                 </div>
             )}

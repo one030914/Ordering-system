@@ -1,54 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-    const [formData, setFormData] = useState({
-        email: "",
-        password: "",
-    });
     const [error, setError] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        setError("");
-
-        const { email, password } = formData;
-
-        if (!email || !password) {
-            setError("所有欄位皆為必填");
-            return;
-        }
-
-        setIsSubmitting(true);
-
+    const handleOAuthLogin = async (provider) => {
         try {
-            const res = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
+            setIsLoading(true);
+            setError("");
+
+            const result = await signIn(provider, {
+                redirect: false,
+                callbackUrl: "/",
             });
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || "登入失敗");
+            if (result?.error) {
+                setError("登入失敗，請稍後再試");
+                return;
+            }
 
-            const user = data.user;
-
-            sessionStorage.setItem("user", JSON.stringify(user));
-            window.location.href = "/";
+            if (result?.url) {
+                router.push(result.url);
+            }
         } catch (err) {
-            setError(err.message);
+            setError("登入失敗，請稍後再試");
         } finally {
-            setIsSubmitting(false);
+            setIsLoading(false);
         }
     };
 
@@ -65,59 +48,26 @@ export default function LoginPage() {
                     </div>
                 )}
                 <div className="mt-6 text-center">
-                    <form action="" className="space-y-3">
+                    <div className="space-y-3">
                         <button
-                            type="submit"
-                            name="provider"
-                            value="google"
-                            className="w-full bg-white text-gray-800 border border-gray-300 py-2 px-4 rounded-md flex items-center justify-center gap-2 shadow hover:bg-gray-50 transition"
+                            onClick={() => handleOAuthLogin("google")}
+                            disabled={isLoading}
+                            className="w-full bg-white text-gray-800 border border-gray-300 py-2 px-4 rounded-md flex items-center justify-center gap-2 shadow hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <Image
-                                src="/google.png"
-                                alt="Google"
-                                width={24}
-                                height={24}
-                            />
+                            <Image src="/google.png" alt="Google" width={24} height={24} />
                             使用 Google 登入
                         </button>
                         <button
-                            type="submit"
-                            name="provider"
-                            value="github"
-                            className="w-full bg-white text-gray-800 border border-gray-300 py-2 px-4 rounded-md flex items-center justify-center gap-2 shadow hover:bg-gray-50 transition"
+                            onClick={() => handleOAuthLogin("github")}
+                            disabled={isLoading}
+                            className="w-full bg-white text-gray-800 border border-gray-300 py-2 px-4 rounded-md flex items-center justify-center gap-2 shadow hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <Image
-                                src="/github.png"
-                                alt="GitHub"
-                                width={24}
-                                height={24}
-                            />
+                            <Image src="/github.png" alt="GitHub" width={24} height={24} />
                             使用 GitHub 登入
                         </button>
-                    </form>
+                    </div>
                 </div>
             </div>
-        </div>
-    );
-}
-
-function InputField({ label, name, type, value, onChange }) {
-    return (
-        <div>
-            <label
-                htmlFor={name}
-                className="block text-sm font-semibold text-gray-800 mb-1"
-            >
-                {label}
-            </label>
-            <input
-                type={type}
-                name={name}
-                id={name}
-                value={value}
-                onChange={onChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white/80 text-gray-800 focus:ring-2 focus:ring-pink-400 focus:outline-none"
-            />
         </div>
     );
 }

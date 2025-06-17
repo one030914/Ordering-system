@@ -2,8 +2,22 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+    const { data: session, status } = useSession();
+    const router = useRouter();
+
+    const handleViewOrdersClick = () => {
+        if (status === "authenticated") {
+            router.push("/orders");
+        } else if (status === "unauthenticated") {
+            router.push("/login");
+        }
+        // 如果 status 是 'loading'，則不做任何事，等待狀態確定
+    };
+
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-100 via-pink-100 to-red-100 px-6 py-12 text-gray-800">
             <main className="text-center flex flex-col items-center gap-8 max-w-xl">
@@ -15,13 +29,9 @@ export default function Home() {
                     priority
                 />
 
-                <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
-                    網路早餐訂餐系統
-                </h1>
+                <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">網路早餐訂餐系統</h1>
 
-                <p className="text-lg sm:text-xl text-gray-700">
-                    提供一站式早晨美味解決方案
-                </p>
+                <p className="text-lg sm:text-xl text-gray-700">提供一站式早晨美味解決方案</p>
 
                 <div className="flex flex-col sm:flex-row gap-4 mt-4">
                     <Link
@@ -30,12 +40,13 @@ export default function Home() {
                     >
                         開始訂餐
                     </Link>
-                    <Link
-                        href="/login"
-                        className="border border-gray-300 text-gray-800 px-6 py-3 rounded-full font-medium hover:bg-white hover:shadow transition duration-300"
+                    <button
+                        onClick={handleViewOrdersClick}
+                        disabled={status === "loading"}
+                        className="border border-gray-300 text-gray-800 px-6 py-3 rounded-full font-medium hover:bg-white hover:shadow transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        查看我的訂單
-                    </Link>
+                        {status === "loading" ? "載入中..." : "查看我的訂單"}
+                    </button>
                 </div>
             </main>
         </div>
